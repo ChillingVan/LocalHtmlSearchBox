@@ -49,8 +49,8 @@ def _update_url(url, anchor):
     return url
 
 
-def _is_match(filterArr, node):
-    for nodefilter in filterArr:
+def _is_match(filter_arr, node):
+    for nodefilter in filter_arr:
         if not nodefilter(node):
             return False
     return True
@@ -81,8 +81,7 @@ def read_files(directory, on_read_file, *arg):
 def _recursive_read_files(path, on_read_fl, *arg):
     if os.path.isdir(path):
         for file_in_dir in os.listdir(path):
-            _recursive_read_files(os.path.join(
-                path, file_in_dir), on_read_fl, *arg)
+            _recursive_read_files(os.path.join(path, file_in_dir), on_read_fl, *arg)
 
     else:
         on_read_fl(path, *arg)
@@ -96,8 +95,10 @@ def simple_read_one(path, url, custom_filter_arr=[]):
         custom_filter_arr: an array that contains filter function function_name(node). The node is a node of bs4
     """
     arr = []
-    read_one_file(url, open(path, 'r', encoding='utf-8'), arr,
-                  [not_allow_tags_filter, not_allow_content_filter, not_allow_type_filter].extend(custom_filter_arr))
+    filter_arr = [not_allow_tags_filter, not_allow_content_filter, not_allow_type_filter]
+    if len(custom_filter_arr) > 0:
+        filter_arr.extend(custom_filter_arr)
+    read_one_file(url, open(path, 'r', encoding='utf-8'), arr, filter_arr)
     return arr
 
 
