@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 from bs4 import BeautifulSoup
 import bs4
 
@@ -6,17 +6,15 @@ import os
 import sys
 
 
-
 def read_one_file(url, inputContent, resultArr, filterArr):
     soup = BeautifulSoup(inputContent)
     level = 0
     anchorSet = set([])
-    iterateNodes(soup, url, level, anchorSet, resultArr, filterArr)
+    _iterate_nodes(soup, url, level, anchorSet, resultArr, filterArr)
     # print('anchorSet:', anchorSet)
-    
 
 
-def iterateNodes(soup, url, level, anchorSet, resultArr, filterArr):
+def _iterate_nodes(soup, url, level, anchorSet, resultArr, filterArr):
     for item in soup.children:
         if isinstance(item, bs4.element.Tag):
             # Collect href
@@ -34,14 +32,15 @@ def iterateNodes(soup, url, level, anchorSet, resultArr, filterArr):
                 url = _update_url(url, item.attrs['name'])
 
             # Continue iterate
-            iterateNodes(item, url, level+1, anchorSet, resultArr, filterArr)
+            _iterate_nodes(item, url, level+1, anchorSet, resultArr, filterArr)
         if item is not None and isinstance(item, bs4.element.NavigableString):
             if not _is_match(filterArr, item):
-                continue;
+                continue
 
             itemStr = item.strip()
             if itemStr != '' and len(itemStr) >= 3:
-                resultArr.append(createItem(url, item.string))
+                resultArr.append(_create_item(url, item.string))
+
 
 def _update_url(url, anchor):
     if '#' in url:
@@ -57,20 +56,21 @@ def _is_match(filterArr, node):
     return True
 
 
-def createItem(url, content):
+def _create_item(url, content):
     makeJson = {}
     makeJson['url'] = url
     makeJson['content'] = content
     return makeJson
 
-def removeSame(srcArr, dstArr):
+
+def remove_same(srcArr, dstArr):
     for item in srcArr:
-        isDup = False
+        is_dup = False
         for dstItem in dstArr:
             if item['url'] == dstItem['url'] and item['content'] == dstItem['content']:
-                isDup = True
+                is_dup = True
                 break
-        if not isDup:
+        if not is_dup:
             dstArr.append(item)
 
 
@@ -81,24 +81,35 @@ def read_files(directory, on_read_file, *arg):
 def _recursive_read_files(path, on_read_fl, *arg):
     if os.path.isdir(path):
         for file_in_dir in os.listdir(path):
-            _recursive_read_files(os.path.join(path, file_in_dir), on_read_fl, *arg)
+            _recursive_read_files(os.path.join(
+                path, file_in_dir), on_read_fl, *arg)
 
     else:
         on_read_fl(path, *arg)
 
 
-def simpleReadOne(path, url):
+def simple_read_one(path, url, custom_filter_arr=[]):
+    """
+    Args:
+        path: the path of the file
+        url: the url of the search item
+        custom_filter_arr: an array that contains filter function function_name(node). The node is a node of bs4
+    """
     arr = []
-    read_one_file(url, open(path,'r',encoding='utf-8'), arr, [not_allow_tags_filter, custom_not_allow_content_filter, not_allow_content_filter, not_allow_type_filter])
+    read_one_file(url, open(path, 'r', encoding='utf-8'), arr,
+                  [not_allow_tags_filter, not_allow_content_filter, not_allow_type_filter].extend(custom_filter_arr))
     return arr
 
+
 def not_allow_content_filter(node):
-    notAllowPrefixArr = ['\n<div>JavaScript is disabled on your browser.</div>'];
+    not_allow_prefix_arr = [
+        '\n<div>JavaScript is disabled on your browser.</div>']
     content = node.string
-    for notAllowPrefix in notAllowPrefixArr:
-        if content is not None and content.lower().startswith(notAllowPrefix.lower()):
+    for not_allow_prefix in not_allow_prefix_arr:
+        if content is not None and content.lower().startswith(not_allow_prefix.lower()):
             return False
     return True
+
 
 def not_allow_type_filter(node):
     if isinstance(node, bs4.element.Comment) or isinstance(node, bs4.element.Doctype):
@@ -112,14 +123,3 @@ def not_allow_tags_filter(node):
         print('not allow:', tagName)
         return False
     return True
-    
-
-def custom_not_allow_content_filter(node):
-    notAllowPrefixArr = ['ans', 'n...', 'n…', 'n,..', 'ans..', 'ans…', 'ans...'];
-    content = node.strip()
-    for notAllowPrefix in notAllowPrefixArr:
-        if content.lower().startswith(notAllowPrefix):
-            return False
-    return True
-
-

@@ -13,32 +13,32 @@ def run_cmd(cmd):
 
 if __name__ == '__main__':
     print("")
-    readRootDir = sys.argv[1]
-    if readRootDir[-1] != r"/" or readRootDir[-1] != "\\":
-        readRootDir = readRootDir + "/"
+    root_read_dir = sys.argv[1]
+    if root_read_dir[-1] != r"/" or root_read_dir[-1] != "\\":
+        root_read_dir = root_read_dir + "/"
     # Generate java doc by javadoc command
     run_cmd(r"javadoc -locale en -encoding UTF-8 -charset UTF-8 -sourcepath "
             + r"../src ../src/main/java/com/chillingvan/docsearcher/Foooo.java ../src/main/java/com/chillingvan/docsearcher/foo/SubFoo.java"
             + r" -subpackages com  -overview ./overview.html -d ../build/doc_java")
 
     # copy js and css to target dir
-    copyfile('search.html', readRootDir + 'search.html')
-    copyfile('docsearcher.css', readRootDir + 'docsearcher.css')
-    copyfile('searchlib.js', readRootDir + 'searchlib.js')
+    copyfile('search.html', root_read_dir + 'search.html')
+    copyfile('docsearcher.css', root_read_dir + 'docsearcher.css')
+    copyfile('searchlib.js', root_read_dir + 'searchlib.js')
 
     # Read the html documents under /com to generate json data to a .js
-    databaseDir = readRootDir
+    database_dir = root_read_dir
 
     def on_read_file(path, resultArr):
         if 'html' in path:
-            url = path[path.index(readRootDir) + len(path):]
+            url = path[path.index(root_read_dir) + len(path):]
             url = url.replace('\\', '/')
-            resultArr.extend(gendb.simpleReadOne(path, url))
+            resultArr.extend(gendb.simple_read_one(path, url))
 
-    resultArr = []
-    gendb.read_files(readRootDir + 'com/', on_read_file, resultArr)
+    result_arr = []
+    gendb.read_files(root_read_dir + 'com/', on_read_file, result_arr)
 
-    finalResultArr = []
-    gendb.removeSame(resultArr, finalResultArr)
-    with open(databaseDir + 'searchData.js', 'w') as fl:
-        fl.write("var searchData = " + json.dumps(finalResultArr))
+    final_result_arr = []
+    gendb.remove_same(result_arr, final_result_arr)
+    with open(database_dir + 'searchData.js', 'w') as fl:
+        fl.write("var searchData = " + json.dumps(final_result_arr))

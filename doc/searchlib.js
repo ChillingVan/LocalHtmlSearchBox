@@ -30,6 +30,7 @@ function debounce(fun, delay) {
     }
 }
 
+//获取最小编辑距离
 function getLevenshteinDistance(leftStr, rightStr) {
     if (leftStr == null || rightStr == null) {
         return 0;
@@ -102,6 +103,8 @@ function doSearch(input) {
         leftContent = left.content.toLowerCase()
         rightContent = right.content.toLowerCase()
         theSearchContent = input.searchContent.toLowerCase()
+
+        // 先保证以搜索内容为开头的更容易被搜索到
         if (leftContent.startsWith(theSearchContent) && !rightContent.startsWith(theSearchContent)) {
             return -1;
         } else if (!leftContent.startsWith(theSearchContent) && rightContent.startsWith(theSearchContent)) {
