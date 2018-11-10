@@ -26,3 +26,6 @@ nbdist/
 .nb-gradle/
 
 local.properties
+
+### python ###
+__pycache__
